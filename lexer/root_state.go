@@ -5,9 +5,7 @@ import (
 )
 
 func rootState(l *lexer) stateFn {
-	//Ignore whitespaces
-	l.acceptRun(" \n\t")
-	l.ignore()
+	l.skip()
 
 	switch {
 	case l.acceptKeyword(token.K_BATCH):
@@ -41,12 +39,24 @@ func rootState(l *lexer) stateFn {
 }
 
 func createState(l *lexer) stateFn {
+	l.skip()
+	switch {
+	case l.acceptKeyword(token.K_AGGREGATE):
+		return nil
+	// DDL
+	case l.acceptKeyword(token.K_INDEX):
+		return nil
+	//case l.acceptKeyword(token.K_FUNCTION):
+	//return createState
+	case l.acceptKeyword(token.K_KEYSPACE):
+		return nil
+	case l.acceptKeyword(token.K_TABLE):
+		return createTableState
+	case l.acceptKeyword(token.K_REVOKE):
+		return nil
 
-	//l.items <- Item{Token: token.K_TABLE}
-	return nil
-}
+		//l.items <- Item{Token: token.K_TABLE}
 
-func createTableState(l *lexer) stateFn {
-	// TODO
+	}
 	return nil
 }

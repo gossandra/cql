@@ -2,6 +2,7 @@ package lexer
 
 import (
 	"bytes"
+	"fmt"
 	"strings"
 	"unicode/utf8"
 
@@ -25,14 +26,23 @@ func (l *lexer) run() {
 }
 
 func (l *lexer) emit(t token.Token) {
+	if l.start == l.pos {
+		return
+	}
 	l.items <- Item{
 		Token: t,
 		Value: l.input[l.start:l.pos],
 	}
+	l.ignore()
 }
 
 // returns next rune from input
+const RuneEOF rune = -1
+
 func (l *lexer) next() (r rune) {
+	if l.pos >= len(l.input) {
+		return RuneEOF
+	}
 	// TODO Check EOF
 	r, l.width = utf8.DecodeRune(l.input[l.pos:])
 	l.pos += l.width
@@ -77,4 +87,33 @@ func (l *lexer) acceptKeyword(tok token.Token) bool {
 		return true
 	}
 	return false
+}
+
+// Consume CQL token and emits Itema.
+func (l *lexer) acceptToken(tok token.Token) bool {
+	b := []byte(tok.String())
+	if bytes.HasPrefix(l.input[l.pos:], b) {
+		l.pos += len(tok.String())
+		l.emit(tok)
+		return true
+	}
+	return false
+}
+
+// Skips the whitespaces.
+// Do not use in comments context
+func (l *lexer) skip() {
+	l.acceptRun(" \n\t")
+	l.ignore()
+}
+
+// error returns an error token and terminates the scan
+// by passing back a nil pointer that will be the next
+// state, terminating l.run.
+func (l *lexer) errorf(format string, args ...interface{}) stateFn {
+	l.items <- Item{
+		token.ILLEGAL,
+		[]byte(fmt.Sprintf(format, args...)),
+	}
+	return nil
 }

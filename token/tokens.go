@@ -32,12 +32,12 @@ const (
 	literal_beg
 	// Identifiers and basic type literals
 	// (these tokens stand for classes of literals)
-	IDENT  // main
+	IDENT  // fieldname
+	QIDENT // "fieldName"
 	INT    // 12345
 	FLOAT  // 123.45
 	IMAG   // 123.45i
-	CHAR   // 'a'
-	STRING // "abc"
+	STRING // 'abc'
 	literal_end
 
 	operator_beg
@@ -102,6 +102,13 @@ const (
 	keyword_beg
 	// CQL Keywords
 
+	// --> COMBINED
+	IfNotExists
+	PrimaryKey
+	CompactStorage
+	ClusteringOrderBy
+
+	// --> ALL
 	K_ADD
 	K_AGGREGATE
 	K_ALL
@@ -223,10 +230,10 @@ var tokens = [...]string{
 	COMMENT: "COMMENT",
 
 	IDENT:  "IDENT",
+	QIDENT: "QUOTED IDENT",
 	INT:    "INT",
 	FLOAT:  "FLOAT",
 	IMAG:   "IMAG",
-	CHAR:   "CHAR",
 	STRING: "STRING",
 
 	ADD: "+",
@@ -286,6 +293,13 @@ var tokens = [...]string{
 	COLON:     ":",
 
 	// Keywords
+	// --> COMBINED
+
+	IfNotExists:       "IF NOT EXISTS",
+	PrimaryKey:        "PRIMARY KEY",
+	CompactStorage:    "COMPACT STORAGE",
+	ClusteringOrderBy: "CLUSTERING ORDER BY",
+	// --> ALL
 
 	K_ADD:          "ADD",
 	K_AGGREGATE:    "AGGREGATE",

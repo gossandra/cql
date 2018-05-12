@@ -7,10 +7,11 @@ var (
 	startState stateFn = rootState
 )
 
-func lex(input []byte) (*lexer, chan Item) {
+func Lex(input []byte) (*lexer, chan Item) {
 	l := lexer{
 		input: input,
-		items: make(chan Item, 10),
+		items: make(chan Item),
+		//items: make(chan Item, 10),
 	}
 
 	go l.run()
