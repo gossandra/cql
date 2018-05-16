@@ -26,7 +26,7 @@ func lexIdentifier(l *lexer) error {
 func lexQuotedIdentifier(l *lexer) error {
 	var r rune
 	if r = l.next(); r != '"' { // FirstQuote
-		return fmt.Errorf("Syntax error at: %s", l.start)
+		return fmt.Errorf("Syntax error at: %v", l.start)
 	}
 
 	for {

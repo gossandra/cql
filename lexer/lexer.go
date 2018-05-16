@@ -18,6 +18,13 @@ type lexer struct {
 	width int
 } // TODO: define
 
+func New(input []byte) *lexer {
+	return &lexer{
+		input: input,
+		items: make(chan Item),
+	}
+}
+
 func (l *lexer) run() {
 	for state := startState; state != nil; {
 		state = state(l)
@@ -61,6 +68,10 @@ func (l *lexer) peek() (r rune) {
 	return r
 }
 
+func (l *lexer) relative() int {
+	return l.pos - l.start
+}
+
 // accept consumes the next rune if it's from the valid set.
 func (l *lexer) accept(valid string) bool {
 	if strings.IndexRune(valid, l.next()) >= 0 {
@@ -77,8 +88,8 @@ func (l *lexer) acceptRun(valid string) {
 	l.backup()
 }
 
-// Consume CQL keyword and emits Item. Case Insensitive
-func (l *lexer) acceptKeyword(tok token.Token) bool {
+// Consume CQL token and emits Item. Case Insensitive
+func (l *lexer) acceptIToken(tok token.Token) bool {
 	b := []byte(tok.String())
 	if bytes.HasPrefix(l.input[l.pos:], b) ||
 		bytes.HasPrefix(l.input[l.pos:], bytes.ToLower(b)) {
@@ -89,7 +100,22 @@ func (l *lexer) acceptKeyword(tok token.Token) bool {
 	return false
 }
 
-// Consume CQL token and emits Itema.
+func (l *lexer) checkIPrefix(b []byte) bool {
+	if bytes.HasPrefix(l.input[l.pos:], b) ||
+		bytes.HasPrefix(l.input[l.pos:], bytes.ToLower(b)) {
+		return true
+	}
+	return false
+}
+func (l *lexer) checkPrefix(b []byte) bool {
+	if bytes.HasPrefix(l.input[l.pos:], b) ||
+		bytes.HasPrefix(l.input[l.pos:], bytes.ToLower(b)) {
+		return true
+	}
+	return false
+}
+
+// Consume CQL token and emits Item.
 func (l *lexer) acceptToken(tok token.Token) bool {
 	b := []byte(tok.String())
 	if bytes.HasPrefix(l.input[l.pos:], b) {

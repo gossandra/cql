@@ -32,12 +32,15 @@ const (
 	literal_beg
 	// Identifiers and basic type literals
 	// (these tokens stand for classes of literals)
-	IDENT  // fieldname
-	QIDENT // "fieldName"
-	INT    // 12345
-	FLOAT  // 123.45
-	IMAG   // 123.45i
-	STRING // 'abc'
+	IDENT   // fieldname
+	QIDENT  // "fieldName"
+	INT     // 12345
+	FLOAT   // 123.45
+	IMAG    // 123.45i
+	STRING  // 'abc'
+	DSTRING // $$abc$$
+	BLOB    // 0x
+	UUID    // 8-4-4-4-12
 	literal_end
 
 	operator_beg
@@ -97,6 +100,8 @@ const (
 	RBRACE    // }
 	SEMICOLON // ;
 	COLON     // :
+
+	BLOBPrefix // 0x
 	operator_end
 
 	keyword_beg
@@ -108,6 +113,11 @@ const (
 	CompactStorage
 	ClusteringOrderBy
 
+	// Not a CQL
+	K_NULL
+	K_TRUE
+	K_FALSE
+	//
 	// --> ALL
 	K_ADD
 	K_AGGREGATE
@@ -229,12 +239,15 @@ var tokens = [...]string{
 	EOF:     "EOF",
 	COMMENT: "COMMENT",
 
-	IDENT:  "IDENT",
-	QIDENT: "QUOTED IDENT",
-	INT:    "INT",
-	FLOAT:  "FLOAT",
-	IMAG:   "IMAG",
-	STRING: "STRING",
+	IDENT:   "IDENT",
+	QIDENT:  "QUOTED IDENT",
+	INT:     "INT",
+	FLOAT:   "FLOAT",
+	IMAG:    "IMAG",
+	STRING:  "STRING",
+	DSTRING: "DOLLAR STRING",
+	BLOB:    "BLOB",
+	UUID:    "UUID",
 
 	ADD: "+",
 	SUB: "-",
@@ -286,11 +299,12 @@ var tokens = [...]string{
 	COMMA:  ",",
 	PERIOD: ".",
 
-	RPAREN:    ")",
-	RBRACK:    "]",
-	RBRACE:    "}",
-	SEMICOLON: ";",
-	COLON:     ":",
+	RPAREN:     ")",
+	RBRACK:     "]",
+	RBRACE:     "}",
+	SEMICOLON:  ";",
+	COLON:      ":",
+	BLOBPrefix: "0X",
 
 	// Keywords
 	// --> COMBINED
@@ -301,6 +315,9 @@ var tokens = [...]string{
 	ClusteringOrderBy: "CLUSTERING ORDER BY",
 	// --> ALL
 
+	K_NULL:         "NULL",
+	K_TRUE:         "TRUE",
+	K_FALSE:        "FALSE",
 	K_ADD:          "ADD",
 	K_AGGREGATE:    "AGGREGATE",
 	K_ALL:          "ALL",

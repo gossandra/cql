@@ -20,6 +20,12 @@ func isAlphaNum(r rune) bool {
 	}
 	return true
 }
+func isHex(r rune) bool {
+	if (r < 'A' || r > 'F') && (r < 'a' || r > 'f') && (r < '0' || r > '9') {
+		return false
+	}
+	return true
+}
 
 func isSpace(r rune) bool {
 	return r == ' '

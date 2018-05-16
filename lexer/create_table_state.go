@@ -11,7 +11,7 @@ import (
 // Lexing CREATE TABLE[WE ARE HERE] ... statement
 func createTableState(l *lexer) stateFn {
 	l.skip()
-	l.acceptKeyword(token.IfNotExists) // ... IF NOT EXISTS ...
+	l.acceptIToken(token.IfNotExists) // ... IF NOT EXISTS ...
 	l.skip()
 	return lexTableNameInside(createTableNameState)
 }
@@ -100,11 +100,11 @@ func lexColumnDescription(l *lexer) error {
 
 		// Do not depend on order. PK STATIC, STATIC PK ...
 		l.skip()
-		l.acceptKeyword(token.K_STATIC)
+		l.acceptIToken(token.K_STATIC)
 		l.skip()
-		l.acceptKeyword(token.PrimaryKey)
+		l.acceptIToken(token.PrimaryKey)
 		l.skip()
-		l.acceptKeyword(token.K_STATIC)
+		l.acceptIToken(token.K_STATIC)
 		return nil // TODO: Error
 	}
 }

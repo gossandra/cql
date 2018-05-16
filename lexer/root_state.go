@@ -8,28 +8,28 @@ func rootState(l *lexer) stateFn {
 	l.skip()
 
 	switch {
-	case l.acceptKeyword(token.K_BATCH):
+	case l.acceptIToken(token.K_BATCH):
 		return nil
 	// DDL
-	case l.acceptKeyword(token.K_ALTER):
+	case l.acceptIToken(token.K_ALTER):
 		return nil
-	case l.acceptKeyword(token.K_CREATE):
+	case l.acceptIToken(token.K_CREATE):
 		return createState
-	case l.acceptKeyword(token.K_DROP):
+	case l.acceptIToken(token.K_DROP):
 		return nil
-	case l.acceptKeyword(token.K_GRANT):
+	case l.acceptIToken(token.K_GRANT):
 		return nil
-	case l.acceptKeyword(token.K_REVOKE):
+	case l.acceptIToken(token.K_REVOKE):
 		return nil
 
 	// DML
-	case l.acceptKeyword(token.K_SELECT):
+	case l.acceptIToken(token.K_SELECT):
 		return nil
-	case l.acceptKeyword(token.K_INSERT):
+	case l.acceptIToken(token.K_INSERT):
 		return nil
-	case l.acceptKeyword(token.K_UPDATE):
+	case l.acceptIToken(token.K_UPDATE):
 		return nil
-	case l.acceptKeyword(token.K_DELETE):
+	case l.acceptIToken(token.K_DELETE):
 		return nil
 
 	default:
@@ -41,18 +41,18 @@ func rootState(l *lexer) stateFn {
 func createState(l *lexer) stateFn {
 	l.skip()
 	switch {
-	case l.acceptKeyword(token.K_AGGREGATE):
+	case l.acceptIToken(token.K_AGGREGATE):
 		return nil
 	// DDL
-	case l.acceptKeyword(token.K_INDEX):
+	case l.acceptIToken(token.K_INDEX):
 		return nil
 	//case l.acceptKeyword(token.K_FUNCTION):
 	//return createState
-	case l.acceptKeyword(token.K_KEYSPACE):
+	case l.acceptIToken(token.K_KEYSPACE):
 		return nil
-	case l.acceptKeyword(token.K_TABLE):
+	case l.acceptIToken(token.K_TABLE):
 		return createTableState
-	case l.acceptKeyword(token.K_REVOKE):
+	case l.acceptIToken(token.K_REVOKE):
 		return nil
 
 		//l.items <- Item{Token: token.K_TABLE}
