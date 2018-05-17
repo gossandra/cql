@@ -6,6 +6,7 @@ package lexer
 import (
 	"bytes"
 	"errors"
+	"log"
 
 	"github.com/gossandra/cql/token"
 )
@@ -20,7 +21,23 @@ const (
 	cfloat
 )
 
-var lexTerm = lexConstant
+func lexTerm(l *lexer) error {
+
+	log.Print(string(l.input[l.pos:]))
+	if err := lexConstant(l); err == nil {
+		return nil
+	}
+	l.reset()
+
+	if err := lexLiteral(l); err == nil {
+		return nil
+	}
+	l.reset()
+	log.Print("lex ERROR")
+	return errors.New("not a term")
+
+	// lexIdentifier + ()
+}
 
 func lexConstant(l *lexer) error {
 	var r rune
@@ -44,32 +61,55 @@ func lexConstant(l *lexer) error {
 	switch {
 	case r == '\'' || r == '$': // TODO: Double $$
 		return lexString(l)
-	case isAlphaNum(r) || r == '-':
+	case isHex(r) || r == '-': // UUID or Number
 		return lexNumber(l)
 	}
-	return nil
+	return errors.New("not a constant")
 }
+
+const (
+	nint uint8 = 1 << iota
+	ndec
+	nexpint
+	nexpdec
+)
 
 func lexNumber(l *lexer) error {
 	var (
 		t          = token.INT
 		r          rune
-		dashPrefix bool = l.peek() == '-'
+		dashPrefix bool  = l.peek() == '-'
+		state      uint8 = nint
 	)
 	if dashPrefix {
 		l.next()
 	}
 
+	digits := "0123456789"
+
 	for {
+		l.acceptRun(digits)
 		r = l.next()
 		switch {
 		case isNum(r):
 			continue
+		case r == RuneEOF:
+			return ErrorEOF
 		case r == '.':
 			t = token.FLOAT
+			if !(state == nint || state == nexpint) {
+				return errors.New("Invalid number")
+			}
+			l.acceptRun(digits)
+			state = state << 1
+			continue
 		case r == 'e' || r == 'E':
+			if state > ndec {
+				return errors.New("invalid exponential notation")
+			}
 			t = token.FLOAT
 			l.accept("+-")
+			state = nexpint
 
 		case (isHex(r) || r == '-'):
 			if dashPrefix {
@@ -95,6 +135,9 @@ func lexString(l *lexer) error {
 				l.emit(token.DSTRING)
 				return nil
 			}
+			if r == RuneEOF {
+				return ErrorEOF
+			}
 		}
 	}
 
@@ -103,8 +146,11 @@ func lexString(l *lexer) error {
 			l.emit(token.STRING)
 			return nil
 		}
+		if r == RuneEOF {
+			return ErrorEOF
+		}
 	}
-	return nil
+	return errors.New("not a string")
 }
 
 func lexUUID(l *lexer) error {
@@ -119,6 +165,9 @@ func lexUUID(l *lexer) error {
 				return InvalidUUID
 			}
 			continue
+		}
+		if r == RuneEOF {
+			return ErrorEOF
 		}
 		if !isHex(r) {
 			return InvalidUUID

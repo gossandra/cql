@@ -2,12 +2,15 @@ package lexer
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"strings"
 	"unicode/utf8"
 
 	"github.com/gossandra/cql/token"
 )
+
+var ErrorEOF = errors.New("EOF")
 
 type lexer struct {
 	input []byte
@@ -58,6 +61,10 @@ func (l *lexer) next() (r rune) {
 
 func (l *lexer) ignore() {
 	l.start = l.pos
+}
+
+func (l *lexer) reset() {
+	l.pos = l.start
 }
 func (l *lexer) backup() {
 	l.pos -= l.width
