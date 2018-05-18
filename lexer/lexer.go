@@ -50,7 +50,7 @@ func (l *lexer) emit(t token.Token) {
 const RuneEOF rune = -1
 
 func (l *lexer) next() (r rune) {
-	if l.pos >= len(l.input) {
+	if l.pos > len(l.input) {
 		return RuneEOF
 	}
 	// TODO Check EOF
