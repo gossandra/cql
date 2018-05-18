@@ -2,7 +2,6 @@ package lexer
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/gossandra/cql/token"
 	"github.com/pkg/errors"
@@ -54,7 +53,6 @@ func createTableDefinitionState(l *lexer) stateFn {
 }
 
 func tableOptionsState(l *lexer) stateFn {
-	log.Printf("========================")
 	l.skip()
 	if !l.acceptToken(token.K_WITH) {
 		l.skip()

@@ -21,20 +21,34 @@ const (
 	cfloat
 )
 
-func lexTerm(l *lexer) error {
-
+func lexTerm(l *lexer) (err error) {
+	l.skip()
 	log.Print(string(l.input[l.pos:]))
+
+	// accept arithmetic: term +-*/% term
+	defer func() {
+		if err != nil {
+			return
+		}
+		if lexArithmetic(l) != nil {
+			return
+		}
+		err = lexTerm(l)
+	}()
+	l.acceptToken(token.SUB) // Accept negative terms
+
 	if err := lexConstant(l); err == nil {
-		return nil
+		return err
 	}
 	l.reset()
 
 	if err := lexLiteral(l); err == nil {
-		return nil
+		return err
 	}
 	l.reset()
 	log.Print("lex ERROR")
-	return errors.New("not a term")
+	err = errors.New("not a term")
+	return err
 
 	// lexIdentifier + ()
 }
@@ -76,14 +90,10 @@ const (
 
 func lexNumber(l *lexer) error {
 	var (
-		t          = token.INT
-		r          rune
-		dashPrefix bool  = l.peek() == '-'
-		state      uint8 = nint
+		t     = token.INT
+		r     rune
+		state uint8 = nint
 	)
-	if dashPrefix {
-		l.next()
-	}
 
 	digits := "0123456789"
 
@@ -94,6 +104,9 @@ func lexNumber(l *lexer) error {
 		case isNum(r):
 			continue
 		case r == RuneEOF:
+			if l.relative() > 0 {
+				return nil
+			}
 			return ErrorEOF
 		case r == '.':
 			t = token.FLOAT
@@ -112,9 +125,6 @@ func lexNumber(l *lexer) error {
 			state = nexpint
 
 		case (isHex(r) || r == '-'):
-			if dashPrefix {
-				return errors.New("invalid number syntax")
-			}
 			return lexUUID(l)
 
 		default:
@@ -154,9 +164,10 @@ func lexString(l *lexer) error {
 }
 
 func lexUUID(l *lexer) error {
+	l.reset()
 	var (
 		r   rune
-		pos int = l.relative()
+		pos int
 	)
 	for ; pos < 36; pos++ {
 		r = l.next()

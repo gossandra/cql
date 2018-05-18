@@ -54,6 +54,7 @@ func TestLexTerm(t *testing.T) {
 		{"Float", "-1795.65734EE+17.472 ", true},
 		{"Float", "+17.65", true},
 		{"Integer", "1488}", false},
+		{"Integer", "77", false},
 		{"String", "'somestring '' with doeblequoted escape'", false},
 		{"String dollar quoted", "$$ somestring '\"!@#$%^&*() $$, ", false},
 		{"Map<string, string>", "{'key1': 'value1', 'key2': 'value2'}", false},
@@ -62,6 +63,7 @@ func TestLexTerm(t *testing.T) {
 		{"Map<int, float>", "{43: 36..6, 33: 777.734, -6: -99.3e+55.3}", true},
 		{"Unclosed inner map", "{44: {36.6, 33: 777.734, -6: -99.3e+55.3}", true},
 		{"Unclosed inner map with syntax error", "{44: {36..6, 33: 777.734, -6: -99.3e+55.3}", true},
+		{"Arithmetic add", "16.24 + 74", false},
 	}
 
 	for _, r := range tt {
