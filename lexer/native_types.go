@@ -21,7 +21,10 @@ const (
 	cfloat
 )
 
+// lexTerm lexing `term` according to http://cassandra.apache.org/doc/latest/cql/definitions.html#terms
 func lexTerm(l *lexer) (err error) {
+	// TODO: type_hint lexer
+
 	l.skip()
 	log.Print(string(l.input[l.pos:]))
 
@@ -37,16 +40,29 @@ func lexTerm(l *lexer) (err error) {
 	}()
 	l.acceptToken(token.SUB) // Accept negative terms
 
-	if err := lexConstant(l); err == nil {
+	if err = lexConstant(l); err == nil {
+		log.Print("lexConstant")
 		return err
 	}
 	l.reset()
 
-	if err := lexLiteral(l); err == nil {
+	if err = lexLiteral(l); err == nil {
+		log.Print("lexLiteral")
 		return err
 	}
+
+	if err = lexFunction(l); err == nil {
+		log.Print("lexFunction")
+		return err
+	}
+
 	l.reset()
-	log.Print("lex ERROR")
+	if err = lexBindMarker(l); err == nil {
+		log.Print("lexBindMarker")
+		return err
+	}
+
+	l.reset()
 	err = errors.New("not a term")
 	return err
 

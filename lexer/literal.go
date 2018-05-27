@@ -2,7 +2,6 @@ package lexer
 
 import (
 	"errors"
-	"log"
 
 	"github.com/gossandra/cql/token"
 )
@@ -100,8 +99,16 @@ const (
 func lexSetMapLiteral(l *lexer) error {
 	var (
 		isMap bool = false
-		state int8 = lkey
+		state int8 = lcomma
 	)
+
+	l.skip()
+	//if l.peek() == ':' {
+	if l.acceptToken(token.COLON) {
+		isMap = true
+		state = lvalue
+	}
+
 	for {
 		switch l.peek() {
 		case ' ', '\n', '\t':
@@ -117,16 +124,16 @@ func lexSetMapLiteral(l *lexer) error {
 			l.acceptToken(token.COMMA)
 			continue
 		case ':':
-			isMap = true
-			state = lvalue
-			l.acceptToken(token.COLON)
-			continue
+			if state == lcolon {
+				state = lvalue
+				l.acceptToken(token.COLON)
+				continue
+			}
 		case RuneEOF:
 			return ErrorEOF
 		default:
 		}
 
-		log.Print(string(l.input[l.pos:]))
 		if err := lexTerm(l); err != nil {
 			return err
 		}

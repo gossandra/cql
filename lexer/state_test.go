@@ -64,6 +64,16 @@ func TestLexTerm(t *testing.T) {
 		{"Unclosed inner map", "{44: {36.6, 33: 777.734, -6: -99.3e+55.3}", true},
 		{"Unclosed inner map with syntax error", "{44: {36..6, 33: 777.734, -6: -99.3e+55.3}", true},
 		{"Arithmetic add", "16.24 + 74", false},
+
+		{"Function", "somefunc()", false},
+		{"Function with args", "somefunc(false, 17)", false},
+		{"Function with invalid args", "somefunc(}, 17)", true},
+		{"Function with math args", "somefunc(17 + 44, 17.37)", false},
+
+		{"Function with bind args", "somefunc(?, ?, ?)", false},
+		{"Function with named bind args", "somefunc(:arg1, :arg2, true)", false},
+		{"Map with bind args", "{'key1': ?, 'key2': ?}", false},
+		{"Map with bind named args", "{'key1': :ke1_val, 'key2': :key2_val}", false},
 	}
 
 	for _, r := range tt {
@@ -84,6 +94,6 @@ func TestLexTerm(t *testing.T) {
 
 func logItems(items <-chan Item) {
 	for i := range items {
-		log.Print(i)
+		log.Print("ITEM: ", i)
 	}
 }
