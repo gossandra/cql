@@ -41,24 +41,20 @@ func lexTerm(l *lexer) (err error) {
 	l.acceptToken(token.SUB) // Accept negative terms
 
 	if err = lexConstant(l); err == nil {
-		log.Print("lexConstant")
 		return err
 	}
 	l.reset()
 
 	if err = lexLiteral(l); err == nil {
-		log.Print("lexLiteral")
 		return err
 	}
 
-	if err = lexFunction(l); err == nil {
-		log.Print("lexFunction")
+	if err = lexFunction(l); err == nil || err == NotAFunctionError {
 		return err
 	}
 
 	l.reset()
 	if err = lexBindMarker(l); err == nil {
-		log.Print("lexBindMarker")
 		return err
 	}
 

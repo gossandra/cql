@@ -55,7 +55,6 @@ func createTableDefinitionState(l *lexer) stateFn {
 func tableOptionsState(l *lexer) stateFn {
 	l.skip()
 	if !l.acceptToken(token.K_WITH) {
-		l.skip()
 		l.acceptToken(token.SEMICOLON)
 		return nil // NO TABLE OPTIONS
 	}

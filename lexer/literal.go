@@ -2,6 +2,8 @@ package lexer
 
 import (
 	"errors"
+	"fmt"
+	"log"
 
 	"github.com/gossandra/cql/token"
 )
@@ -47,11 +49,17 @@ func lexListTupleLiteral(l *lexer) error {
 }
 
 func lexSetMapUDT(l *lexer) error {
+	var err error
 	l.acceptToken(token.LBRACE)
-	if err := lexConstant(l); err == nil {
+	if l.acceptToken(token.RBRACE) {
+		return nil // empty collection
+	}
+	err = lexTerm(l)
+
+	if err == nil {
 		return lexSetMapLiteral(l)
 	}
-	if err := lexIdentifier(l); err == nil {
+	if err == NotAFunctionError {
 		return lexUDTLiteral(l)
 	}
 
@@ -59,89 +67,87 @@ func lexSetMapUDT(l *lexer) error {
 }
 
 func lexUDTLiteral(l *lexer) error {
-	afterColon := false
+	log.Print("UDT LITERAL")
+	//l.reset()
+	// starts with colon, because {FirstField is lexed by `lexSetMapUDT`
 	for {
-		switch l.peek() {
-		case '}':
-			l.acceptToken(token.RBRACE)
-			return nil
-		case ',':
-			l.acceptToken(token.COMMA)
-			afterColon = false
-		case ':':
-			l.acceptToken(token.COLON)
-			afterColon = true
-		case RuneEOF:
+		l.skip()
+		if l.peek() == RuneEOF {
 			return ErrorEOF
-		default:
-		}
-		if afterColon {
-			if err := lexTerm(l); err != nil {
-				return err
-			}
-		} else {
-			if err := lexIdentifier(l); err != nil {
-				return err
-			}
-
-		}
-	}
-	return nil
-}
-
-const (
-	lkey int8 = 1 << iota
-	lcolon
-	lvalue
-	lcomma
-)
-
-func lexSetMapLiteral(l *lexer) error {
-	var (
-		isMap bool = false
-		state int8 = lcomma
-	)
-
-	l.skip()
-	//if l.peek() == ':' {
-	if l.acceptToken(token.COLON) {
-		isMap = true
-		state = lvalue
-	}
-
-	for {
-		switch l.peek() {
-		case ' ', '\n', '\t':
-			l.skip()
-		case '}':
-			l.acceptToken(token.RBRACE)
-			return nil
-		case ',':
-			if state != lcomma {
-				return errors.New("unexpected comma")
-			}
-			state = lkey
-			l.acceptToken(token.COMMA)
-			continue
-		case ':':
-			if state == lcolon {
-				state = lvalue
-				l.acceptToken(token.COLON)
-				continue
-			}
-		case RuneEOF:
-			return ErrorEOF
-		default:
 		}
 
+		// colon:
+		l.skip()
+		if !l.acceptToken(token.COLON) {
+			return fmt.Errorf("unexpected %s, expecting COLON", string(l.peek()))
+		}
+
+		// value:
+		l.skip()
 		if err := lexTerm(l); err != nil {
 			return err
 		}
 
-		if state == lvalue || !isMap {
-			state = lcomma
-		} else {
-			state = lcolon
+		// comma:
+		l.skip()
+		if l.acceptToken(token.RBRACE) {
+			return nil
 		}
+		if !l.acceptToken(token.COMMA) {
+			return fmt.Errorf("unexpected %s, expecting COMMA", string(l.peek()))
+		}
+		// key:
+		l.skip()
+		if err := lexIdentifier(l); err != nil {
+			return err
+		}
+
+	}
+}
+
+func lexSetMapLiteral(l *lexer) error {
+	var (
+		isMap bool = false
+	)
+
+	l.skip()
+	if l.acceptToken(token.COLON) {
+		isMap = true
+	}
+
+	for {
+		l.skip()
+		// MAP part
+		if isMap {
+
+			// value:
+			l.skip()
+			if err := lexTerm(l); err != nil {
+				return err
+			}
+		}
+
+		// comma:
+		l.skip()
+		if l.acceptToken(token.RBRACE) {
+			return nil
+		}
+		if !l.acceptToken(token.COMMA) {
+			return fmt.Errorf("unexpected %s, expecting COMMA", string(l.peek()))
+		}
+
+		// key
+		if err := lexTerm(l); err != nil {
+			return err
+		}
+
+		if isMap {
+			// colon:
+			l.skip()
+			if !l.acceptToken(token.COLON) {
+				return fmt.Errorf("unexpected %s, expecting COLON", string(l.peek()))
+			}
+		}
+
 	}
 }

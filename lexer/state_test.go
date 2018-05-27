@@ -46,21 +46,30 @@ func TestLexTerm(t *testing.T) {
 		input  string
 		hasErr bool
 	}{
+		{"BLOB", "0xabcdefababcdabcdabcd0123456789012", false},
+		{"BLOB", "0xABCDEFABABCDABCDABCD0123456789012", false},
+		{"BLOB", "0XABCDEFABABCDABCDABCD0123456789012", false},
+
 		{"UUID", "abcdefab-abcd-abcd-abcd-0123456789012,", false},
 		{"UUID incorrect", "abcdefab0abcd-abcd-abcd-0123456789012,", true},
 		{"UUID incorrect", "-bcdefab-abcd-abcd-abcd-0123456789012,", true},
+
 		{"Float", "-1795.65734E+17.472 ", false},
 		{"Float", "-1795..65734E+17.472 ", true},
 		{"Float", "-1795.65734EE+17.472 ", true},
 		{"Float", "+17.65", true},
 		{"Integer", "1488}", false},
 		{"Integer", "77", false},
+
 		{"String", "'somestring '' with doeblequoted escape'", false},
 		{"String dollar quoted", "$$ somestring '\"!@#$%^&*() $$, ", false},
+
 		{"Map<string, string>", "{'key1': 'value1', 'key2': 'value2'}", false},
 		{"Map<string, string>", "{'key1': ,'value1', 'key2': 'value2'}", true},
 		{"Map<int, float>", "{42: 36.6, 33: 777.734, -6: -99.3e+55.3}", false},
 		{"Map<int, float>", "{43: 36..6, 33: 777.734, -6: -99.3e+55.3}", true},
+		{"Map with bind args", "{'key1': ?, 'key2': ?}", false},
+		{"Map with bind named args", "{'key1': :ke1_val, 'key2': :key2_val}", false},
 		{"Unclosed inner map", "{44: {36.6, 33: 777.734, -6: -99.3e+55.3}", true},
 		{"Unclosed inner map with syntax error", "{44: {36..6, 33: 777.734, -6: -99.3e+55.3}", true},
 		{"Arithmetic add", "16.24 + 74", false},
@@ -69,11 +78,14 @@ func TestLexTerm(t *testing.T) {
 		{"Function with args", "somefunc(false, 17)", false},
 		{"Function with invalid args", "somefunc(}, 17)", true},
 		{"Function with math args", "somefunc(17 + 44, 17.37)", false},
-
+		{"Function with quoted identifier", "\"somefunc\"(17 + 44, 17.37)", false},
+		{"Function with quoted identifier escape", `"some""func"(17 + 44, 17.37)`, false},
 		{"Function with bind args", "somefunc(?, ?, ?)", false},
 		{"Function with named bind args", "somefunc(:arg1, :arg2, true)", false},
-		{"Map with bind args", "{'key1': ?, 'key2': ?}", false},
-		{"Map with bind named args", "{'key1': :ke1_val, 'key2': :key2_val}", false},
+
+		{"UDT", `{Data: 0xAFFCAC6C, Name: 'stringvalue'}`, false},
+		{"UDT", `{Data: 0xAFFCAC6C, Age: 21}`, false},
+		{"UDT", `{Data: 0xAFFCAC6C, Name: 'stringvalue'} `, false},
 	}
 
 	for _, r := range tt {

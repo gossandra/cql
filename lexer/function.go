@@ -1,6 +1,12 @@
 package lexer
 
-import "github.com/gossandra/cql/token"
+import (
+	"errors"
+
+	"github.com/gossandra/cql/token"
+)
+
+var NotAFunctionError = errors.New("Identifier is not a function call")
 
 func lexFunctionParams(l *lexer) error {
 	for {
@@ -28,7 +34,9 @@ func lexFunction(l *lexer) error {
 	if err != nil {
 		return err
 	}
-	l.acceptToken(token.LPAREN)
+	if !l.acceptToken(token.LPAREN) {
+		return NotAFunctionError
+	}
 	return lexFunctionParams(l)
 
 }

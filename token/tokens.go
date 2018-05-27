@@ -32,15 +32,17 @@ const (
 	literal_beg
 	// Identifiers and basic type literals
 	// (these tokens stand for classes of literals)
-	IDENT   // fieldname
-	QIDENT  // "fieldName"
-	INT     // 12345
-	FLOAT   // 123.45
-	IMAG    // 123.45i
-	STRING  // 'abc'
-	DSTRING // $$abc$$
-	BLOB    // 0x
-	UUID    // 8-4-4-4-12
+	IDENT        // fieldname
+	QIDENT       // "fieldName"
+	INT          // 12345
+	FLOAT        // 123.45
+	IMAG         // 123.45i
+	STRING       // 'abc'
+	DSTRING      // $$abc$$
+	BLOB         // 0x
+	UUID         // 8-4-4-4-12
+	MARKER       // ? in prepare queries
+	NAMED_MARKER // :identifier in prepare queries
 	literal_end
 
 	operator_beg
@@ -239,15 +241,17 @@ var tokens = [...]string{
 	EOF:     "EOF",
 	COMMENT: "COMMENT",
 
-	IDENT:   "IDENT",
-	QIDENT:  "QUOTED IDENT",
-	INT:     "INT",
-	FLOAT:   "FLOAT",
-	IMAG:    "IMAG",
-	STRING:  "STRING",
-	DSTRING: "DOLLAR STRING",
-	BLOB:    "BLOB",
-	UUID:    "UUID",
+	IDENT:        "IDENT",
+	QIDENT:       "QUOTED IDENT",
+	INT:          "INT",
+	FLOAT:        "FLOAT",
+	IMAG:         "IMAG",
+	STRING:       "STRING",
+	DSTRING:      "DOLLAR STRING",
+	BLOB:         "BLOB",
+	UUID:         "UUID",
+	MARKER:       "MARKER",
+	NAMED_MARKER: "NAMED_MARKER",
 
 	ADD: "+",
 	SUB: "-",
